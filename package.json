@@ -1,0 +1,16 @@
+{
+  "name": "netguard",
+  "version": "1.0.0",
+  "description": "NetGuard - Web-Based Linux nftables Firewall Management and Monitoring Dashboard",
+  "engines": {
+    "node": ">=22.5.0"
+  },
+  "scripts": {
+    "dev:backend": "npm --prefix backend run dev",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "start:backend": "npm --prefix backend start",
+    "test:backend": "npm --prefix backend test"
+  },
+  "author": "Antigravity & NetGuard Team",
+  "license": "MIT"
+}
