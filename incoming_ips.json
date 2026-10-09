@@ -1,0 +1,86 @@
+[
+  {
+    "ip": "198.51.100.42",
+    "port": 22,
+    "protocol": "TCP",
+    "chain": "input"
+  },
+  {
+    "ip": "203.0.113.88",
+    "port": 23,
+    "protocol": "TCP",
+    "chain": "input"
+  },
+  {
+    "ip": "185.220.101.5",
+    "port": 443,
+    "protocol": "TCP",
+    "chain": "input"
+  },
+  {
+    "ip": "45.143.200.12",
+    "port": 22,
+    "protocol": "TCP",
+    "chain": "input"
+  },
+  {
+    "ip": "194.26.29.105",
+    "port": 80,
+    "protocol": "TCP",
+    "chain": "input"
+  },
+  {
+    "ip": "192.168.1.150",
+    "port": 80,
+    "protocol": "TCP",
+    "chain": "input"
+  },
+  {
+    "ip": "10.0.0.55",
+    "port": 443,
+    "protocol": "TCP",
+    "chain": "input"
+  },
+  {
+    "ip": "192.168.1.99",
+    "port": null,
+    "protocol": "ICMP",
+    "chain": "input"
+  },
+  {
+    "ip": "203.0.113.199",
+    "port": 3389,
+    "protocol": "TCP",
+    "chain": "input"
+  },
+  {
+    "ip": "8.8.8.8",
+    "port": 53,
+    "protocol": "UDP",
+    "chain": "input"
+  },
+  {
+    "ip": "198.51.100.99",
+    "port": 445,
+    "protocol": "TCP",
+    "chain": "input"
+  },
+  {
+    "ip": "198.51.100.77",
+    "port": 8080,
+    "protocol": "TCP",
+    "chain": "input"
+  },
+  {
+    "ip": "10.0.0.12",
+    "port": 80,
+    "protocol": "TCP",
+    "chain": "forward"
+  },
+  {
+    "ip": "172.16.0.4",
+    "port": 80,
+    "protocol": "TCP",
+    "chain": "forward"
+  }
+]

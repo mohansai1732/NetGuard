@@ -1,105 +1,184 @@
 # NetGuard 🛡️
-> **Web-Based Linux `nftables` Firewall Management & Monitoring Dashboard**
+> **Lightweight Terminal-Based Linux `nftables` Firewall Engine & Showcase**
 
-NetGuard is a full-stack Node.js + React web application that enables authenticated administrators to monitor and manage a Linux `nftables` firewall through an intuitive, dark-mode cyber defense interface.
-
----
-
-## ⚡ Key Highlights & Architecture
-
-- **Strict Boundary Separation**: The frontend SPA communicates exclusively via the Express REST API and authenticated WebSockets. It is never allowed to run or craft raw shell commands.
-- **Server-Side Command Construction**: All firewall rules and set modifications are built and validated in the Node.js backend using strictly sanitized arrays (`execFile`) rather than string concatenation.
-- **Embedded Database (`node:sqlite`)**: Uses Node.js 22+ built-in synchronous SQLite engine. No external C++ compiler, python, or visual studio build tools required.
-- **Authenticated Real-Time WebSocket (`/ws`)**: Streams live network packet telemetry with JWT verification on connection handshake (`?token=<jwt>`).
-- **Stateful Rule-Matching Traffic Simulator**: Simulated traffic is actively evaluated against current firewall rules and the `@blocklist` set. A newly added `DROP` rule or blocked IP immediately triggers dropped packets in the live telemetry feed with its matching rule handle!
-- **Strict Chain Scoping**: Rule creations are strictly locked to the `input` and `forward` chains to eliminate arbitrary kernel chain injection.
-- **Brute-Force Rate Limiting**: Dedicated rate limiting on `POST /api/auth/login` (5 attempts per 15m) keyed by IP and target username for NAT compatibility.
+NetGuard is a clean, zero-dependency Node.js firewall engine designed to execute and test Linux `nftables` rulesets against incoming IP network traffic directly in your terminal.
 
 ---
 
-## 📋 Prerequisites
+## ⚡ Highlights
 
-- **Node.js**: `>= 22.5.0` (required for native `node:sqlite` module support)
-- **npm**: `>= 10.0.0`
+- **Zero External Dependencies**: Pure Node.js built-ins (`fs`, `path`, `readline`, `assert`). No npm packages needed.
+- **Configurable Ruleset (`rules.json`)**: Plain JSON file defining firewall chains (`input`, `forward`), actions (`ACCEPT`, `DROP`, `REJECT`), protocols, and ports.
+- **Dynamic IP Blocklist (`blocklist.json`)**: Enforces exact IP and bitwise CIDR subnet blocks (e.g. `194.26.29.0/24`).
+- **Live Traffic Inspection (`incoming_ips.json`)**: Evaluates incoming network packets directly against active firewall rules.
+- **Terminal Interface (`cli.js`)**: Interactive menu shell and CLI commands with color-coded verdicts (`ACCEPT`, `DROP`, `REJECT`).
+- **Rule-Driven Verification**: 100% dynamic packet evaluation based solely on defined rules, blocklist, and chain policies.
 
 ---
 
 ## 🚀 Quick Start
 
-### 1. Start the Backend Daemon (Port 5000)
+No `npm install` needed! Just clone and run:
+
+### 1. Run the Showcase (Execute Incoming IPs)
 
 ```bash
-cd backend
-npm install
-npm run dev
+npm run showcase
+# or
+node cli.js showcase
 ```
 
-The daemon will start on `http://localhost:5000` with the SQLite database initialized and WebSocket server listening at `ws://localhost:5000/ws`.
+This reads `incoming_ips.json`, runs every packet through the firewall rules and blocklist, and prints color-coded verdicts and an execution summary:
 
-> [!NOTE]
-> In development mode, if no `JWT_SECRET` is defined in `.env`, NetGuard generates a secure ephemeral secret. In production mode (`NODE_ENV=production`), `JWT_SECRET` is strictly required.
+```text
+[1 /14] [ACCEPT] 198.51.100.42:22       TCP   [chain: input]    -> Matched Rule #10: Allow SSH traffic
+[2 /14] [ DROP ] 203.0.113.88:23        TCP   [chain: input]    -> Matched Rule #15: Drop unauthorized Telnet probes
+[3 /14] [ DROP ] 185.220.101.5:443      TCP   [chain: input]    -> Blocked by @blocklist set (185.220.101.5: Tor exit node brute force)
+[4 /14] [ DROP ] 45.143.200.12:22       TCP   [chain: input]    -> Blocked by @blocklist set (45.143.200.12: Repeated SSH dictionary scan)
+[5 /14] [ DROP ] 194.26.29.105:80       TCP   [chain: input]    -> Blocked by @blocklist set (194.26.29.0/24: Known malicious botnet subnet)
+```
 
-### 2. Start the Frontend Application (Port 5173)
+---
 
-In a separate terminal:
+### 2. Interactive Terminal Shell
 
 ```bash
-cd frontend
-npm install
-npm run dev
+npm start
+# or
+node cli.js
 ```
 
-Open `http://localhost:5173` in your browser.
+Displays an interactive management menu:
+
+```text
+ACTIONS:
+  [1] 🚀 Run Showcase (Execute incoming_ips.json)
+  [2] 🎯 Test Single IP Address
+  [3] 📋 View Rules (rules.json)
+  [4] ➕ Add Rule
+  [5] ❌ Delete Rule
+  [6] 🛡️  View Blocklist (blocklist.json)
+  [7] 🚫 Block IP / CIDR
+  [8] 🔓 Unblock IP / CIDR
+  [9] 🔄 Reset Rules to Defaults
+  [0] 🚪 Exit
+```
 
 ---
 
-## 🔐 Authentication & First-Login Flow
+## 📁 Files Overview
 
-- **Default Seeded Admin**: `admin`
-- **Initial Dev Password**: `admin123`
-
-> [!IMPORTANT]
-> When logging in with the default seeded credentials, NetGuard's security layer detects `must_change_password: 1` and prompts you to change the initial password before full console access is unlocked.
-
----
-
-## 📡 API Endpoints
-
-| Method | Endpoint | Description | Auth Required |
-|---|---|---|---|
-| `POST` | `/api/auth/login` | Authenticate admin & acquire JWT (Rate limited) | No |
-| `POST` | `/api/auth/change-password` | Update administrator password | Yes |
-| `GET` | `/api/auth/me` | Fetch current session and profile info | Yes |
-| `GET` | `/api/stats/summary` | 24-hour summary metrics (ACCEPT / DROP / REJECT) | Yes |
-| `GET` | `/api/logs/recent` | Recent connection logs with matched handles | Yes |
-| `GET` | `/api/rules` | Fetch current `nftables` parsed ruleset | Yes |
-| `POST` | `/api/rules` | Add new firewall rule (scoped to `input`/`forward`) | Yes |
-| `PUT` | `/api/rules/:handle` | Edit existing rule by handle ID | Yes |
-| `DELETE` | `/api/rules/:handle` | Delete rule from `nftables` by handle | Yes |
-| `GET` | `/api/ip-blocklist` | List blocked IPs in `nftables` `@blocklist` set | Yes |
-| `POST` | `/api/ip-blocklist` | Add IP or CIDR subnet to blocklist set | Yes |
-| `DELETE` | `/api/ip-blocklist/:ip` | Remove IP or CIDR from blocklist set | Yes |
-| `GET` | `/api/audit-logs` | Retrieve administrator audit trail with filters | Yes |
-| `WS` | `/ws?token=<jwt>` | Live streaming connection telemetry | Yes |
+| File | Description |
+|---|---|
+| [`rules.json`](./rules.json) | The active firewall ruleset (ports, protocols, chains, actions). |
+| [`blocklist.json`](./blocklist.json) | Blocked IPs and CIDR subnets. |
+| [`incoming_ips.json`](./incoming_ips.json) | Incoming IP network packets to inspect against rules. |
+| [`firewall.js`](./firewall.js) | Core rule execution engine with bitwise CIDR matching. |
+| [`cli.js`](./cli.js) | Terminal runner and interactive CLI. |
+| [`test.js`](./test.js) | Rule-driven unit test suite. |
 
 ---
 
-## 🖥️ Application Pages
+## ⚙️ Firewall Rules (`rules.json`)
 
-1. **`/login`**: Cyber-security themed login card with demo credentials helper and rate-limit guard.
-2. **`/dashboard`**: Real-time overview featuring live counters, an interactive 24-hour traffic volume chart (Recharts), and a live connection stream connected to the authenticated WebSocket.
-3. **`/rules`**: Full `nftables` rules viewer with filters by chain (`input`, `forward`) and action (`ACCEPT`, `DROP`, `REJECT`), plus an "Add Rule" modal with server-side validation.
-4. **`/ip-management`**: Dedicated IP blocklist interface managing the kernel `@blocklist` set with instant add and unblock capabilities.
-5. **`/logs`**: Complete audit trail recording all rule creations, deletions, IP blocks, and administrative logins.
-6. **`/settings`**: Admin password change and firewall engine runtime telemetry.
+You can edit [`rules.json`](./rules.json) directly or use the CLI:
+
+```json
+[
+  {
+    "handle": 10,
+    "chain": "input",
+    "protocol": "tcp",
+    "src_ip": null,
+    "port": "22",
+    "action": "ACCEPT",
+    "comment": "Allow SSH traffic"
+  },
+  {
+    "handle": 15,
+    "chain": "input",
+    "protocol": "tcp",
+    "src_ip": null,
+    "port": "23",
+    "action": "DROP",
+    "comment": "Drop unauthorized Telnet probes"
+  }
+]
+```
+
+### Rule Commands:
+```bash
+# View active rules
+node cli.js rules
+
+# Delete rule by handle number
+node cli.js rules delete 15
+
+# Reset rules to default configuration
+node cli.js rules reset
+```
+
+---
+
+## 📝 Incoming IP Packets (`incoming_ips.json`)
+
+Add or modify incoming IP packets in [`incoming_ips.json`](./incoming_ips.json):
+
+```json
+[
+  {
+    "ip": "198.51.100.42",
+    "port": 22,
+    "protocol": "TCP",
+    "chain": "input"
+  },
+  {
+    "ip": "194.26.29.105",
+    "port": 80,
+    "protocol": "TCP",
+    "chain": "input"
+  }
+]
+```
+
+---
+
+## 🎯 Test a Single IP Packet
+
+Test what verdict an incoming IP packet receives based on current active rules:
+
+```bash
+# Syntax: node cli.js test <ip> [port] [protocol] [chain]
+node cli.js test 185.220.101.5 443 TCP
+# Output: [ DROP ] 185.220.101.5:443 [TCP] [chain: input] -> Blocked by @blocklist set (185.220.101.5: Tor exit node brute force)
+
+node cli.js test 198.51.100.42 22 TCP
+# Output: [ACCEPT] 198.51.100.42:22 [TCP] [chain: input] -> Matched Rule #10: Allow SSH traffic
+```
+
+---
+
+## 🛡️ Blocklist Management (`blocklist.json`)
+
+```bash
+# View active blocklist
+node cli.js blocklist
+
+# Block an IP or CIDR subnet
+node cli.js block 194.26.29.0/24 "Known botnet subnet"
+
+# Unblock an IP or CIDR subnet
+node cli.js unblock 194.26.29.0/24
+```
 
 ---
 
 ## 🧪 Testing
 
-Run backend tests verifying database initialization, admin seeding, rule management, and packet evaluation:
+Run all unit tests:
 
 ```bash
-cd backend
 npm test
+# or
+node test.js
 ```

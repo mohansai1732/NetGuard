@@ -1,0 +1,14 @@
+[
+  {
+    "ip_or_cidr": "185.220.101.5",
+    "reason": "Tor exit node brute force"
+  },
+  {
+    "ip_or_cidr": "45.143.200.12",
+    "reason": "Repeated SSH dictionary scan"
+  },
+  {
+    "ip_or_cidr": "194.26.29.0/24",
+    "reason": "Known malicious botnet subnet"
+  }
+]

@@ -1,16 +1,28 @@
 {
   "name": "netguard",
   "version": "1.0.0",
-  "description": "NetGuard - Web-Based Linux nftables Firewall Management and Monitoring Dashboard",
+  "description": "NetGuard - Lightweight Terminal-Based Linux nftables Firewall Engine",
+  "main": "firewall.js",
+  "bin": {
+    "netguard": "./cli.js"
+  },
   "engines": {
-    "node": ">=22.5.0"
+    "node": ">=18.0.0"
   },
   "scripts": {
-    "dev:backend": "npm --prefix backend run dev",
-    "dev:frontend": "npm --prefix frontend run dev",
-    "start:backend": "npm --prefix backend start",
-    "test:backend": "npm --prefix backend test"
+    "start": "node cli.js",
+    "showcase": "node cli.js showcase",
+    "rules": "node cli.js rules",
+    "blocklist": "node cli.js blocklist",
+    "test": "node test.js"
   },
-  "author": "Antigravity & NetGuard Team",
+  "keywords": [
+    "firewall",
+    "nftables",
+    "terminal",
+    "security",
+    "packet-filter"
+  ],
+  "author": "Mohan",
   "license": "MIT"
 }
